@@ -5,29 +5,35 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Fluxo de Caixa</title>
 <meta name="description" content="Ganhos, despesas, investimentos e objetivos — sozinho ou dividindo a casa.">
-<meta name="theme-color" content="#1D5C46">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231D5C46'/%3E%3Cpath d='M8 21l5-5 4 3 7-8' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#13507E">
+<link rel="icon" type="image/png" href="/icons/icon-192.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Fluxo de Caixa">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>html,body{height:100%}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
 <style>
 /* Layout: uma coluna de trabalho; resumo do mês no topo, abas para Lançamentos / Investimentos / Metas */
 :root{
-  --bg:#EEF2EF; --panel:#FFFFFF; --ink:#15211C; --muted:#5B6964; --line:#D7DFDA;
-  --accent:#1D5C46; --accent-ink:#FFFFFF; --accent-soft:#DDEAE3;
-  --in:#2C7A54; --out:#B0442D; --warn:#9A6A12; --grid:#E3E9E5;
+  --bg:#F1F4F8; --panel:#FFFFFF; --ink:#0F1D2B; --muted:#5A6878; --line:#D6DEE7;
+  --accent:#13507E; --accent-ink:#FFFFFF; --accent-soft:#DCE9F4;
+  --in:#1F7A4D; --out:#C0392B; --warn:#B26B00; --grid:#E4EAF1;
   --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --f-body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
   --f-num:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0E1412; --panel:#161F1B; --ink:#E4EBE7; --muted:#93A29B; --line:#2A3631;
-  --accent:#6BC29A; --accent-ink:#0E1412; --accent-soft:#1D2E27;
-  --in:#5DBF8A; --out:#EB7A60; --warn:#E2B04F; --grid:#212C28; color-scheme:dark}}
+  --bg:#0A121A; --panel:#111C27; --ink:#E3EAF2; --muted:#8FA0B2; --line:#23323F;
+  --accent:#63B3EE; --accent-ink:#0A121A; --accent-soft:#16283A;
+  --in:#4CC38A; --out:#F07463; --warn:#F0B44C; --grid:#1B2834; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0E1412; --panel:#161F1B; --ink:#E4EBE7; --muted:#93A29B; --line:#2A3631;
-  --accent:#6BC29A; --accent-ink:#0E1412; --accent-soft:#1D2E27;
-  --in:#5DBF8A; --out:#EB7A60; --warn:#E2B04F; --grid:#212C28; color-scheme:dark}
+  --bg:#0A121A; --panel:#111C27; --ink:#E3EAF2; --muted:#8FA0B2; --line:#23323F;
+  --accent:#63B3EE; --accent-ink:#0A121A; --accent-soft:#16283A;
+  --in:#4CC38A; --out:#F07463; --warn:#F0B44C; --grid:#1B2834; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
 .wrap{max-width:1040px;margin:0 auto;padding-block:20px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:20px}
@@ -173,6 +179,7 @@ td{font-family:var(--f-num);font-variant-numeric:tabular-nums}
         <label class="lbl" for="roomSel">Sala</label>
         <select id="roomSel"></select>
         <button class="btn sm" type="button" id="openShare">Compartilhar</button>
+        <button class="btn ghost sm" type="button" id="install" hidden>Instalar app</button>
         <button class="btn ghost sm" type="button" id="logout">Sair</button>
       </div>
       <div class="who"><span id="whoTxt"></span> · <span class="save" id="save"></span></div>
@@ -351,13 +358,15 @@ let S={anos:20,lanc:[],inv:[],metas:[]};
 let pending=[],inflight=false,flushT=null,month=CUR,undoFn=null,toastT=null,pollT=null;
 function norm(s){s=s&&typeof s==='object'?s:{};return{anos:Math.max(1,+s.anos||20),lanc:Array.isArray(s.lanc)?s.lanc:[],inv:Array.isArray(s.inv)?s.inv:[],metas:Array.isArray(s.metas)?s.metas:[]}}
 const setSave=t=>{$('save').textContent=t};
-function op(o){pending.push(o);clearTimeout(flushT);setSave('Salvando…');flushT=setTimeout(flush,350)}
+function savePending(){ls.set('fc_pending',pending.length?JSON.stringify({room:ROOM,ops:pending}):'')}
+function cacheSnap(){if(ME)ls.set('fc_cache',JSON.stringify({ME,ROOMS,ROOM,ROLE,VER,MEMBERS,S}))}
+function op(o){pending.push(o);savePending();clearTimeout(flushT);setSave('Salvando…');flushT=setTimeout(flush,350)}
 async function flush(){
   if(inflight||!pending.length||!ROOM)return;
   inflight=true;const ops=pending.splice(0);const room=ROOM;
   try{const r=await api('POST','/api/rooms/'+room+'/ops',{ops});
-    if(room===ROOM){VER=r.version;if(!pending.length){S=norm(r.data);render()}setSave('Tudo salvo')}}
-  catch(e){if(room===ROOM){if(e.status===0||e.status>=500){pending.unshift(...ops);setSave('Sem conexão — tentando de novo…');setTimeout(flush,4000)}else{setSave(e.message);load(room)}}}
+    if(room===ROOM){VER=r.version;if(!pending.length){S=norm(r.data);render()}setSave('Tudo salvo')}savePending()}
+  catch(e){if(room===ROOM){if(e.status===0||e.status>=500){pending.unshift(...ops);savePending();setSave(navigator.onLine?'Sem conexão — tentando de novo…':'Sem internet — as mudanças serão enviadas quando voltar');setTimeout(flush,navigator.onLine?4000:15000)}else{setSave(e.message);load(room)}}}
   finally{inflight=false;if(pending.length){clearTimeout(flushT);flushT=setTimeout(flush,350)}}
 }
 const put=(col,item)=>op({op:'put',col,item:JSON.parse(JSON.stringify(item))});
@@ -378,12 +387,16 @@ function showAuth(){$('app').hidden=true;$('share').hidden=true;$('auth').hidden
 $('fAuth').onsubmit=async e=>{e.preventDefault();const reg=$('amReg').checked;$('aBtn').disabled=true;$('aErr').hidden=true;
   try{await api('POST',reg?'/api/register':'/api/login',{username:$('aUser').value,password:$('aPass').value,name:$('aName').value});$('aPass').value='';await boot()}
   catch(err){$('aErr').textContent=err.message;$('aErr').hidden=false}finally{$('aBtn').disabled=false}};
-$('logout').onclick=async()=>{try{await api('POST','/api/logout')}catch(e){}ME=null;ROOM=null;showAuth()};
+$('logout').onclick=async()=>{try{await api('POST','/api/logout')}catch(e){}ME=null;ROOM=null;ls.set('fc_cache','');ls.set('fc_pending','');showAuth()};
 
 /* ---------- salas ---------- */
 function pendingInvite(){const q=new URLSearchParams(location.search).get('convite');return q&&/^[A-Za-z0-9]{8}$/.test(q)?q.toUpperCase():null}
 async function boot(){
-  try{const d=await api('GET','/api/me');ME=d.user;ROOMS=d.rooms}catch(e){if(e.status!==401){$('auth').hidden=false;$('aErr').textContent=e.message;$('aErr').hidden=false}return}
+  try{const d=await api('GET','/api/me');ME=d.user;ROOMS=d.rooms}catch(e){
+    if(e.status===0){let c=null;try{c=JSON.parse(ls.get('fc_cache')||'null')}catch(x){}
+      if(c&&c.ME){({ME,ROOMS,ROOM,ROLE,VER,MEMBERS}=c);S=norm(c.S);restorePending();$('auth').hidden=true;$('app').hidden=false;$('whoTxt').textContent=ME.name+' (@'+ME.username+')';fillRooms();render();setSave('Sem internet — mostrando os últimos dados salvos');
+        window.addEventListener('online',()=>boot(),{once:true});return}}
+    if(e.status!==401){$('auth').hidden=false;$('aErr').textContent=e.message;$('aErr').hidden=false}return}
   $('auth').hidden=true;$('app').hidden=false;$('whoTxt').textContent=ME.name+' (@'+ME.username+')';
   const saved=ls.get('fc_room');
   await load(ROOMS.find(r=>r.id===saved)?saved:ROOMS[0].id);
@@ -391,11 +404,13 @@ async function boot(){
   const c=pendingInvite();if(c){openShare();$('joinCode').value=c;previewInvite(c);try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}}
 }
 function fillRooms(){$('roomSel').innerHTML=ROOMS.map(r=>`<option value="${r.id}" ${r.id===ROOM?'selected':''}>${esc(r.name)}${r.members>1?' · '+r.members+' pessoas':''}</option>`).join('')}
+function restorePending(){try{const p=JSON.parse(ls.get('fc_pending')||'null');if(p&&p.room===ROOM&&Array.isArray(p.ops)&&p.ops.length){pending=p.ops.concat(pending);clearTimeout(flushT);flushT=setTimeout(flush,350)}}catch(e){}}
 async function load(id){
+  if(pending.length&&ROOM&&ROOM!==id){await flush()}
   ROOM=id;ls.set('fc_room',id);pending=[];setSave('Carregando…');
   try{const d=await api('GET','/api/rooms/'+id);if(ROOM!==id)return;S=norm(d.room.data);VER=d.room.version;ROLE=d.room.role;MEMBERS=d.members;
     const r=ROOMS.find(x=>x.id===id);if(r){r.name=d.room.name;r.members=d.members.length}
-    fillRooms();render();setSave('Tudo salvo')}
+    fillRooms();render();setSave('Tudo salvo');restorePending()}
   catch(e){setSave(e.message)}
 }
 async function refreshRooms(){const d=await api('GET','/api/me');ROOMS=d.rooms;fillRooms()}
@@ -612,9 +627,17 @@ $('fMeta').onsubmit=e=>{e.preventDefault();const nome=$('mNome').value.trim(),al
   const it={id:nid(),nome,alvo,tenho:+$('mTenho').value||0,aporte:+$('mAporte').value||0,taxa:+$('mTaxa').value||0,ok:false,by:ME.id};S.metas.push(it);put('metas',it);
   $('fMeta').reset();$('mTaxa').value=10;render()};
 
-function render(){renderLanc();renderInv();renderMetas();prevMeta()}
+function render(){renderLanc();renderInv();renderMetas();prevMeta();cacheSnap()}
 syncDate();authMode();
-window.addEventListener('beforeunload',e=>{if(pending.length){flush();e.preventDefault()}});
+window.addEventListener('pagehide',()=>{if(pending.length){savePending();flush()}});
+/* ---------- PWA ---------- */
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+let installEvt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;$('install').hidden=false});
+$('install').onclick=async()=>{if(!installEvt)return;installEvt.prompt();try{await installEvt.userChoice}catch(e){}installEvt=null;$('install').hidden=true};
+window.addEventListener('appinstalled',()=>{$('install').hidden=true});
+window.addEventListener('online',()=>{setSave('Conectado de novo');flush();poll()});
+window.addEventListener('offline',()=>setSave('Sem internet — as mudanças serão enviadas quando voltar'));
 boot();
 })();
 </script>

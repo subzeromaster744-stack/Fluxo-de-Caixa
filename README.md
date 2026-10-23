@@ -1,6 +1,6 @@
 # Fluxo de Caixa
 
-Finanças pessoais e da casa: ganhos e despesas com gráfico mês a mês, contas marcadas como pagas, investimentos com projeção de quantos anos quiser e objetivos com prazo estimado e botão de concluído.
+Finanças pessoais e da casa (instalável como app no celular e no computador): ganhos e despesas com gráfico mês a mês, contas marcadas como pagas, investimentos com projeção de quantos anos quiser e objetivos com prazo estimado e botão de concluído.
 
 Cada pessoa tem usuário e senha. Os dados ficam em **salas**: o dono gera um código de convite, a outra pessoa digita o código na conta dela e aceita — a partir daí os dois veem e editam a mesma sala.
 
