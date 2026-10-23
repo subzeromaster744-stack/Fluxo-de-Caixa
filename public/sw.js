@@ -2,7 +2,7 @@
 // Página: rede primeiro (sempre a versão mais nova), cache se estiver sem internet.
 // Arquivos estáticos e fontes: cache primeiro, atualizando em segundo plano.
 // /api/* nunca passa pelo cache.
-const VERSION = 'fc-v2';
+const VERSION = 'fc-v3';
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
