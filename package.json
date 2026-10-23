@@ -1,0 +1,14 @@
+{
+  "name": "fluxo-de-caixa",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:schema": "wrangler d1 execute fluxo-de-caixa --remote --file=schema.sql",
+    "db:schema:local": "wrangler d1 execute fluxo-de-caixa --local --file=schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.40.0"
+  }
+}
